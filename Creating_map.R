@@ -3,9 +3,12 @@
 library(rgdal)
 library(leaflet)
 library(maps)
-library(dplr)
+library(dplyr)
 #Setting working directory
-setwd("C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\Data")
+setwd("C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses")
+
+#Load in functions
+source("R Code\\functions.R")
 
 #Loading in kml MSOA file of England and Wales
 geo_dat <- readOGR("C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\Data", layer = "Middle_Layer_Super_Output_Areas__December_2001__Boundaries")
@@ -36,7 +39,8 @@ geo_dat$la_name <- trimws(gsub("[0-9]+", "", geo_dat$msoa01nm), "r")
 geo_dat <- geo_dat[geo_dat$la_name %in% c(huddersfield, portsmouth, cheltenham),]
 
 #Calculate statistics by MSOA
-
+IMD_res <- vf_dat3 %>% group_by(MSOA11CD) %>% summarise(mean_IMD = mean(Index.of.Multiple.Deprivation..IMD..Score))
+geo_dat@data <- merge(geo_dat@data, IMD_res, by.x = "msoa01cd", by.y = "MSOA11CD")
 
 #Merge MSOAs of dataset into shapefile
 geo_dat <- geo_dat[geo_dat$msoa01cd %in% vf_dat3$MSOA11CD,]
@@ -44,4 +48,7 @@ geo_dat <- geo_dat[geo_dat$msoa01cd %in% vf_dat3$MSOA11CD,]
 #Transforming to leaflet coordinate reference system
 geo_dat2 <- spTransform(geo_dat, CRSobj = CRS("+init=epsg:4326"))
 
-leaflet(data = geo_dat2, options = leafletOptions()) %>% addTiles() %>% addPolygons(fillColor = topo.colors(2),stroke = FALSE)
+pal <- colorNumeric(palette = "Blues", domain = vf_dat$mean_IMD)
+
+leaflet(data = geo_dat2) %>% addTiles(group = "OSM (default)") %>% setView(lng = -1.884209, lat = 53.73652, zoom = 10) %>% addPolygons(stroke = FALSE, fillOpacity = 0.9, color = ~pal(mean_IMD), group = "IMD") %>% 
+  addLayersControl(overlayGroups = c("IMD"))
