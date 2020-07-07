@@ -48,7 +48,7 @@ geo_dat <- geo_dat[geo_dat$msoa01cd %in% vf_dat3$MSOA11CD,]
 #Transforming to leaflet coordinate reference system
 geo_dat2 <- spTransform(geo_dat, CRSobj = CRS("+init=epsg:4326"))
 
-pal <- colorNumeric(palette = "Blues", domain = vf_dat$mean_IMD)
+pal <- colorNumeric(palette = "YlOrRd", domain = vf_dat$mean_IMD)
 
 leaflet(data = geo_dat2) %>% addTiles(group = "OSM (default)") %>% setView(lng = -1.884209, lat = 53.73652, zoom = 10) %>% addPolygons(stroke = FALSE, fillOpacity = 0.9, color = ~pal(mean_IMD), group = "IMD") %>% 
   addLayersControl(overlayGroups = c("IMD"))

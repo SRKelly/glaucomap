@@ -14,8 +14,12 @@ ui <- fluidPage(leafletOutput(outputId = "mymap"))
 
 #Shiny server code
 server <- function(input, output, session) {
-  output$mymap <- renderLeaflet({leaflet(data = geo_dat2) %>% addTiles(group = "OSM (default)") %>% addPolygons(stroke = FALSE, fillOpacity = 0.9, color = ~pal(mean_IMD), group = "IMD") %>% 
-      addLayersControl(overlayGroups = c("IMD"))})
+  output$mymap <- renderLeaflet({leaflet(data = geo_dat2) %>% 
+      addTiles(group = "OSM (default)") %>% 
+      addPolygons(stroke = FALSE, fillOpacity = 0.9, color = ~pal(mean_IMD), group = "IMD") %>% 
+      addLayersControl(overlayGroups = c("IMD")) %>%
+      addLegend("bottomright", pal = pal, values = ~mean_IMD, title = "IMD", opacity = 1)
+    })
 }
 
 shinyApp(ui, server)
