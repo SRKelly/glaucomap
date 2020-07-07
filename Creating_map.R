@@ -44,4 +44,4 @@ geo_dat <- geo_dat[geo_dat$msoa01cd %in% vf_dat3$MSOA11CD,]
 #Transforming to leaflet coordinate reference system
 geo_dat2 <- spTransform(geo_dat, CRSobj = CRS("+init=epsg:4326"))
 
-leaflet(data = geo_dat2, options = leafletOptions()) %>% addTiles() %>% addPolygons()
+leaflet(data = geo_dat2, options = leafletOptions()) %>% addTiles() %>% addPolygons(fillColor = topo.colors(2),stroke = FALSE)
