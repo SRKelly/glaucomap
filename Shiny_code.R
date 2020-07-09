@@ -16,9 +16,10 @@ ui <- fluidPage(leafletOutput(outputId = "mymap"))
 server <- function(input, output, session) {
   output$mymap <- renderLeaflet({leaflet(data = geo_dat2) %>% 
       addTiles(group = "OSM (default)") %>% 
-      addPolygons(stroke = FALSE, fillOpacity = 0.9, color = ~pal(mean_IMD), group = "IMD") %>% 
-      addLayersControl(overlayGroups = c("IMD")) %>%
-      addLegend("bottomright", pal = pal, values = ~mean_IMD, title = "IMD", opacity = 1)
+      setView(lng = -1.884209, lat = 53.73652, zoom = 10) %>% 
+      addPolygons(stroke = FALSE, fillOpacity = 0.9, color = ~IMD_pal(mean_IMD), group = "IMD") %>% 
+      addPolygons(stroke = FALSE, fillOpacity = 0.9, smoothFactor = 0.2, color = ~MD_pal(presenting_MD), group = "Mean Deviation") %>% 
+      addLayersControl(overlayGroups = c("IMD", "Mean Deviation"), options = layersControlOptions(collapsed = FALSE))
     })
 }
 
