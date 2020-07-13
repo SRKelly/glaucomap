@@ -6,11 +6,13 @@ library(leaflet)
 library(dplyr)
 library(leaflet.extras)
 library(rsconnect)
+library(rgdal)
+
 #Make map
 #source("Creating_map.R")
 
 #Loading in data
-geo_dat2 <- readOGR(dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code", layer = "data")
+geo_dat2 <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
 
 #Rename columns
 colnames(geo_dat2@data) <- c("mso01cd", "objectd", "mso01nm", "ms01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "age_prop")
@@ -22,7 +24,7 @@ age_pal <- colorNumeric(palette = "BuGn", domain = geo_dat2$age_prop)
 
 #Shiny UI Code
 ui <- fluidPage(
-  leafletOutput(outputId = "mymap", height = 720, width = 720),
+  leafletOutput(outputId = "mymap", height = 500, width = 1000),
   p(),
   actionButton("centre_hud", "Centre on Huddersfield"),
   actionButton("centre_glouc", "Centre on Gloucester"),
