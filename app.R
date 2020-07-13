@@ -12,6 +12,7 @@ library(rgdal)
 #source("Creating_map.R")
 
 #Loading in data
+geo_dat2 <- readOGR(dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\shapefiles\\data.shp", layer = "data")
 geo_dat2 <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
 
 #Rename columns
@@ -24,13 +25,17 @@ age_pal <- colorNumeric(palette = "BuGn", domain = geo_dat2$age_prop)
 
 #Shiny UI Code
 ui <- fluidPage(
+  titlePanel("Map of socioeconomic factors and glaucoma"),
+  
   leafletOutput(outputId = "mymap", height = 500, width = 1000),
-  p(),
-  actionButton("centre_hud", "Centre on Huddersfield"),
-  actionButton("centre_glouc", "Centre on Gloucester"),
-  actionButton("centre_port", "Centre on Portsmouth"),
-  radioButtons("overlays", "Select overlay", choiceNames = c("IMD", "Age", "Afro-Caribbean", "Mean Deviation"), choiceValues = c("IMD", "Age", "Afro", "MD"))
-  )
+  
+  sidebarLayout(
+      sidebarPanel(
+    actionButton("centre_hud", "Centre on Huddersfield"),
+    actionButton("centre_glouc", "Centre on Gloucester"),
+    actionButton("centre_port", "Centre on Portsmouth"),
+    radioButtons("overlays", "Select overlay", choiceNames = c("IMD", "Age", "Afro-Caribbean", "Mean Deviation"), choiceValues = c("IMD", "Age", "Afro", "MD"))
+    )))
 
 #Shiny server code
 server <- function(input, output, session) {
