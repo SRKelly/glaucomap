@@ -12,7 +12,6 @@ library(rgdal)
 #source("Creating_map.R")
 
 #Loading in data
-geo_dat2 <- readOGR(dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\shapefiles\\data.shp", layer = "data")
 geo_dat2 <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
 
 #Rename columns
@@ -27,15 +26,17 @@ age_pal <- colorNumeric(palette = "BuGn", domain = geo_dat2$age_prop)
 ui <- fluidPage(
   titlePanel("Map of socioeconomic factors and glaucoma"),
   
-  leafletOutput(outputId = "mymap", height = 500, width = 1000),
-  
   sidebarLayout(
       sidebarPanel(
-    actionButton("centre_hud", "Centre on Huddersfield"),
-    actionButton("centre_glouc", "Centre on Gloucester"),
-    actionButton("centre_port", "Centre on Portsmouth"),
-    radioButtons("overlays", "Select overlay", choiceNames = c("IMD", "Age", "Afro-Caribbean", "Mean Deviation"), choiceValues = c("IMD", "Age", "Afro", "MD"))
-    )))
+        radioButtons("overlays", "Select overlay", choiceNames = c("IMD", "Age", "Afro-Caribbean", "Mean Deviation"), choiceValues = c("IMD", "Age", "Afro", "MD")),
+        selectInput("centre_select", label = "Select Area", choices = c("Huddersfield", "Gloucester", "Portsmouth"), selected = "Huddersfield")
+    ), 
+    mainPanel(
+      leafletOutput(
+        outputId = "mymap", height = 500, width = 1000),
+
+      ))
+  )
 
 #Shiny server code
 server <- function(input, output, session) {
@@ -43,11 +44,13 @@ server <- function(input, output, session) {
 
   output$mymap <- renderLeaflet({leaflet(data = geo_dat2) %>% 
       addTiles(group = "OSM (default)") %>% 
-      setView(lng = -1.884209, lat = 53.73652, zoom = 10)})
+      setView(lng = -1.88, lat = 53.66, zoom = 10)})
   
-  observeEvent(input$centre_hud, {leafletProxy("mymap") %>% setView(-1.88, 53.66, zoom = 10) })
-  observeEvent(input$centre_glouc, {leafletProxy("mymap") %>% setView(-2.2769, 51.8839, zoom = 9) })
-  observeEvent(input$centre_port, {leafletProxy("mymap") %>% setView(-0.8652, 51, zoom = 9) })
+  observeEvent(input$centre_select, switch(input$centre_select,
+                                           Huddersfield = {leafletProxy("mymap") %>% setView(-1.88, 53.66, zoom = 10) },
+                                           Gloucester = {leafletProxy("mymap") %>% setView(-2.2769, 51.8839, zoom = 9) },
+                                           Portsmouth = {leafletProxy("mymap") %>% setView(-0.8652, 51, zoom = 9) }))
+
   observeEvent(input$overlays, switch(input$overlays, 
                                       IMD = {leafletProxy("mymap", data = geo_dat2) %>% clearShapes() %>% clearControls() %>%
                                           addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Mean IMD :", round(mean_IMD)), smoothFactor = 0.1, color = ~IMD_pal(mean_IMD), group = "IMD") %>%
