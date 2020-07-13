@@ -1,0 +1,12 @@
+name: glaucomap
+title: glaucomap
+username:
+account: srkelly
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2565424
+bundleId: 3385743
+url: https://srkelly.shinyapps.io/glaucomap/
+when: 1594643929.1281
+asMultiple: FALSE
+asStatic: FALSE
