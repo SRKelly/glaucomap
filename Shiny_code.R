@@ -9,6 +9,17 @@ library(rsconnect)
 #Make map
 #source("Creating_map.R")
 
+#Loading in data
+geo_dat2 <- readOGR(dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code", layer = "data")
+
+#Rename columns
+colnames(geo_dat2@data) <- c("mso01cd", "objectd", "mso01nm", "ms01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "age_prop")
+
+IMD_pal <- colorNumeric(palette = "YlOrRd", domain = geo_dat2$mean_IMD)
+MD_pal <- colorNumeric(palette = "Blues", domain = geo_dat2$proportion)
+Black_pal <- colorNumeric(palette = "Reds", domain = geo_dat2$proportion_black)
+age_pal <- colorNumeric(palette = "BuGn", domain = geo_dat2$age_prop)
+
 #Shiny UI Code
 ui <- fluidPage(
   leafletOutput(outputId = "mymap", height = 720, width = 720),

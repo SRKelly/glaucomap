@@ -70,7 +70,11 @@ MD_pal <- colorNumeric(palette = "Blues", domain = MD_res$proportion)
 Black_pal <- colorNumeric(palette = "Reds", domain = propblack$proportion_black)
 age_pal <- colorNumeric(palette = "BuGn", domain = age_res$age_prop)
 
+
 geo_dat2 <- geo_dat2[complete.cases(geo_dat2$mean_IMD),] #Maybe set NAs to grey..
+
+writeOGR(obj = geo_dat2, dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\data.shp", layer = "data", driver = "ESRI Shapefile")
+
 
 leaflet(data = geo_dat2) %>% 
   addTiles(group = "OSM (default)") %>% 
