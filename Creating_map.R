@@ -63,7 +63,7 @@ age_res <- vf_dat3 %>% group_by(MSOA11CD) %>% summarise(age_prop = length(age[ag
 geo_dat@data <- merge(geo_dat@data, age_res, by.x = "msoa01cd", by.y = "MSOA11CD", all.x = TRUE)
 
 #Transforming to leaflet coordinate reference system
-geo_dat2 <- spTransform(geo_dat, CRSobj = CRS("+init=epsg:4326"))
+geo_dat <- spTransform(geo_dat, CRSobj = CRS("+init=epsg:4326"))
 
 IMD_pal <- colorNumeric(palette = "YlOrRd", domain = IMD_res$mean_IMD)
 MD_pal <- colorNumeric(palette = "Blues", domain = MD_res$proportion)
@@ -71,12 +71,12 @@ Black_pal <- colorNumeric(palette = "Reds", domain = propblack$proportion_black)
 age_pal <- colorNumeric(palette = "BuGn", domain = age_res$age_prop)
 
 
-geo_dat2 <- geo_dat2[complete.cases(geo_dat2$mean_IMD),] #Maybe set NAs to grey..
+#geo_dat2 <- geo_dat2[complete.cases(geo_dat2$mean_IMD),] #Maybe set NAs to grey..
 
-writeOGR(obj = geo_dat2, dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\data.shp", layer = "data", driver = "ESRI Shapefile")
+writeOGR(obj = geo_dat, dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\data.shp", layer = "data", driver = "ESRI Shapefile")
 
 
-leaflet(data = geo_dat2) %>% 
+leaflet(data = geo_dat) %>% 
   addTiles(group = "OSM (default)") %>% 
   setView(lng = -1.884209, lat = 53.73652, zoom = 10) %>% 
   addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Mean IMD :", round(mean_IMD)), smoothFactor = 0.1, color = ~IMD_pal(mean_IMD), group = "IMD") %>% 
