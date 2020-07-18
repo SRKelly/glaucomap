@@ -56,7 +56,8 @@ propblack <- raceinfo %>% group_by(MSOA_CODE) %>% summarise(proportion_black = a
 geo_dat@data <- merge(geo_dat@data, propblack, by.x = "msoa01cd", by.y = "MSOA_CODE")
 
 MD_res <- vf_dat3 %>% arrange(patient_pseudoid, DateOfTest) %>% group_by(MSOA11CD, patient_pseudoid) %>% summarise(presenting_MD = MeanDeviation[1], second_MD = MeanDeviation[2])
-MD_res <- MD_res %>% group_by(MSOA11CD) %>% summarise(presenting_MD = mean(presenting_MD), proportion = length(second_MD[second_MD < -12])/length(second_MD))
+MD_res <- MD_res %>% group_by(MSOA11CD) %>% summarise(presenting_MD = mean(presenting_MD), proportion = length(second_MD[second_MD < -12])/length(second_MD), num_vfs = length(second_MD))
+MD_res$proportion[MD_res$num_vfs < 10] <- NA
 geo_dat@data <- merge(geo_dat@data, MD_res, by.x = "msoa01cd", by.y = "MSOA11CD", all.x = TRUE)
 
 age_res <- vf_dat3 %>% group_by(MSOA11CD) %>% summarise(age_prop = length(age[age > 60])/length(age))
@@ -71,9 +72,12 @@ Black_pal <- colorNumeric(palette = "Reds", domain = propblack$proportion_black)
 age_pal <- colorNumeric(palette = "BuGn", domain = age_res$age_prop)
 
 
-#geo_dat2 <- geo_dat2[complete.cases(geo_dat2$mean_IMD),] #Maybe set NAs to grey..
+geo_dat <- geo_dat[!is.na(geo_dat$proportion),] #Maybe set NAs to grey..
 
-writeOGR(obj = geo_dat, dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\data.shp", layer = "data", driver = "ESRI Shapefile")
+writeOGR(obj = geo_dat, dsn = "C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\R Code\\shapefiles\\data.shp", 
+         layer = "data", 
+         driver = "ESRI Shapefile",
+         overwrite_layer = TRUE)
 
 
 leaflet(data = geo_dat) %>% 

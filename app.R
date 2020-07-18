@@ -7,6 +7,9 @@ library(dplyr)
 library(leaflet.extras)
 library(rsconnect)
 library(rgdal)
+library(purrr)
+library(htmlwidgets)
+library(htmltools)
 
 #Make map
 #source("Creating_map.R")
@@ -14,8 +17,11 @@ library(rgdal)
 #Loading in data
 geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
 
+geo_dat@data$hoverText <- map2(geo_dat$mso01nm, geo_dat$num_vfs, ~htmltools::HTML(sprintf("Area Name: %s <br/> Number of VFs: %s", .x, .y)))
+
+print(head(geo_dat@data))
 #Rename columns
-colnames(geo_dat@data) <- c("mso01cd", "objectd", "mso01nm", "ms01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "age_prop")
+colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa01nm", "msoa01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hoverText")
 
 IMD_pal <- colorNumeric(palette = "YlOrRd", domain = geo_dat$mean_IMD)
 MD_pal <- colorNumeric(palette = "Blues", domain = geo_dat$proportion)
@@ -52,7 +58,7 @@ server <- function(input, output, session) {
   observeEvent(input$centre_select, switch(input$centre_select,
                                            Huddersfield = {leafletProxy("mymap") %>% setView(-1.88, 53.66, zoom = 10) },
                                            Gloucester = {leafletProxy("mymap") %>% setView(-2.2769, 52, zoom = 9) },
-                                           Portsmouth = {leafletProxy("mymap") %>% setView(-0.8652, 51, zoom = 9) }))
+                                           Portsmouth = {leafletProxy("mymap") %>% setView(-0.8652, 51, zoom = 10) }))
 
   observeEvent(input$overlays, switch(input$overlays, 
                                       IMD = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
@@ -64,8 +70,8 @@ server <- function(input, output, session) {
                                           addLegend(position = "bottomright", pal = age_pal, values = ~age_prop, opacity = 1, title = "Proportion Over 60", group = "Proportion over 60")
                                       },
                                       Afro = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
-                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Proportion of Afro-Caribbean :", round(proportion_black, 2)), smoothFactor = 0.1, color = ~Black_pal(proportion_black), group = "Proportion Afro-Caribbean") %>% 
-                                          addLegend(position = "bottomright", pal = Black_pal, values = ~proportion_black, opacity = 1, title = "Proportion Afro-Caribbean", group = "Proportion Afro-Caribbean")
+                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~hoverText, smoothFactor = 0.1, color = ~Black_pal(proportion_black), group = "Proportion Afro-Caribbean") %>% 
+                                          addLegend(position = "bottomright", pal = Black_pal, values = ~proportion_black, opacity = 1, title = "Proportion Afro-Caribbean", group = "<br> Proportion Afro-Caribbean")
                                       },
                                       MD = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
                                           addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Proportion < -12 MD :", round(proportion, 2)), smoothFactor = 0.1, color = ~MD_pal(proportion), group = "Mean Deviation") %>% 
@@ -74,5 +80,5 @@ server <- function(input, output, session) {
     ))
                                  
 }
-
+print(geo_dat$hoverText[1])
 shinyApp(ui, server)
