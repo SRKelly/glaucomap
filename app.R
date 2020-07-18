@@ -11,8 +11,6 @@ library(purrr)
 library(htmlwidgets)
 library(htmltools)
 
-#Make map
-#source("Creating_map.R")
 
 #Loading in data
 geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
