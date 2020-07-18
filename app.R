@@ -11,15 +11,19 @@ library(purrr)
 library(htmlwidgets)
 library(htmltools)
 
+#Load in functions and css style sheet
+source("./functions.R")
 
 #Loading in data
 geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
 
-geo_dat@data$hoverText <- map2(geo_dat$mso01nm, geo_dat$num_vfs, ~htmltools::HTML(sprintf("Area Name: %s <br/> Number of VFs: %s", .x, .y)))
+geo_dat@data$hover_text_imd <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "IMD Score: ", round(geo_dat$men_IMD, 2))
+geo_dat@data$hover_text_age <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Proportion of population over 60: ", round(geo_dat$age_prp, 2))
+geo_dat@data$hover_text_black <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Proportion of population Afro-Caribbean: ", round(geo_dat$prprtn_, 2))
+geo_dat@data$hover_text_md <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Mean presenting MD: ", round(geo_dat$prsn_MD, 2))
 
-print(head(geo_dat@data))
 #Rename columns
-colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa01nm", "msoa01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hoverText")
+colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa01nm", "msoa01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hover_text_imd", "hover_text_age", "hover_text_black", "hover_text_md")
 
 IMD_pal <- colorNumeric(palette = "YlOrRd", domain = geo_dat$mean_IMD)
 MD_pal <- colorNumeric(palette = "Blues", domain = geo_dat$proportion)
@@ -60,23 +64,23 @@ server <- function(input, output, session) {
 
   observeEvent(input$overlays, switch(input$overlays, 
                                       IMD = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
-                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Mean IMD :", round(mean_IMD)), smoothFactor = 0.1, color = ~IMD_pal(mean_IMD), group = "IMD") %>%
+                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~hover_text_imd, labelOptions = labelOptions(style = style_sheet), smoothFactor = 0.1, color = ~IMD_pal(mean_IMD), group = "IMD") %>%
                                           addLegend(position = "bottomright", pal = IMD_pal, values = ~mean_IMD, opacity = 1, title = "IMD", group = "IMD")
                                         },
                                       Age = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
-                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Proportion over 60 :", round(age_prop, 2)), smoothFactor = 0.1, color = ~age_pal(age_prop), group = "Proportion over 60") %>%
+                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~hover_text_age, labelOptions = labelOptions(style = style_sheet), smoothFactor = 0.1, color = ~age_pal(age_prop), group = "Proportion over 60") %>%
                                           addLegend(position = "bottomright", pal = age_pal, values = ~age_prop, opacity = 1, title = "Proportion Over 60", group = "Proportion over 60")
                                       },
                                       Afro = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
-                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~hoverText, smoothFactor = 0.1, color = ~Black_pal(proportion_black), group = "Proportion Afro-Caribbean") %>% 
+                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~hover_text_black, labelOptions = labelOptions(style = style_sheet), smoothFactor = 0.1, color = ~Black_pal(proportion_black), group = "Proportion Afro-Caribbean") %>% 
                                           addLegend(position = "bottomright", pal = Black_pal, values = ~proportion_black, opacity = 1, title = "Proportion Afro-Caribbean", group = "<br> Proportion Afro-Caribbean")
                                       },
                                       MD = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
-                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~paste0("Proportion < -12 MD :", round(proportion, 2)), smoothFactor = 0.1, color = ~MD_pal(proportion), group = "Mean Deviation") %>% 
+                                          addPolygons(stroke = FALSE, fillOpacity = 0.9, label = ~hover_text_md, labelOptions = labelOptions(style = style_sheet), smoothFactor = 0.1, color = ~MD_pal(proportion), group = "Mean Deviation") %>% 
                                           addLegend(position = "bottomright", pal = MD_pal, values = ~proportion, opacity = 1, title = "Proportion of MD <-12", group = "Mean Deviation")
                                       }
     ))
                                  
 }
-print(geo_dat$hoverText[1])
+
 shinyApp(ui, server)
