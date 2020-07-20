@@ -11,11 +11,11 @@ library(purrr)
 library(htmlwidgets)
 library(htmltools)
 
-#Load in functions and css style sheet
-source("./functions.R")
-
 #Loading in data
 geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
+
+#Load in functions and css style sheet
+source("./functions.R")
 
 geo_dat@data$hover_text_imd <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "IMD Score: ", round(geo_dat$men_IMD, 2))
 geo_dat@data$hover_text_age <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Proportion of population over 60: ", round(geo_dat$age_prp, 2))
@@ -40,19 +40,30 @@ ui <- fluidPage(
   sidebarLayout(
       sidebarPanel(
         radioButtons("overlays", "Select overlay", choiceNames = c("IMD", "Age", "Afro-Caribbean", "Mean Deviation"), choiceValues = c("IMD", "Age", "Afro", "MD")),
-        selectInput("centre_select", label = "Select Area", choices = c("Huddersfield", "Gloucester", "Portsmouth"), selected = "Huddersfield")
+        selectInput("centre_select", label = "Select Area", choices = c("Huddersfield", "Gloucester", "Portsmouth"), selected = "Huddersfield"),
+        textOutput("test")
     ), 
     mainPanel(
-      leafletOutput(
-        outputId = "mymap", height = 500, width = 1000),
-
-      ))
+      leafletOutput(outputId = "mymap", height = 500, width = 1000),
+      dataTableOutput("area_table")
+      )
+    )
   )
 
 #Shiny server code
 server <- function(input, output, session) {
   
-
+  output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == "E02002244",][,c(3,8:12)]})
+  
+  observeEvent(input$mymap_shape_click, {
+    clicked_msoa <- as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat))
+    output$test <- renderText(as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat)))
+    output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == clicked_msoa, c(3,8:12)][,]
+      }
+      
+      )
+    })
+  
   output$mymap <- renderLeaflet({leaflet(data = geo_dat) %>% 
       addTiles(group = "OSM (default)") %>% 
       setView(lng = -1.88, lat = 53.66, zoom = 10)})
