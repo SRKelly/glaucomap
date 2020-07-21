@@ -25,6 +25,8 @@ geo_dat@data$hover_text_md <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs
 #Rename columns
 colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa01nm", "msoa01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hover_text_imd", "hover_text_age", "hover_text_black", "hover_text_md")
 
+
+
 IMD_pal <- colorNumeric(palette = "YlOrRd", domain = geo_dat$mean_IMD)
 MD_pal <- colorNumeric(palette = "Blues", domain = geo_dat$proportion)
 Black_pal <- colorNumeric(palette = "Reds", domain = geo_dat$proportion_black)
@@ -40,25 +42,27 @@ ui <- fluidPage(
   sidebarLayout(
       sidebarPanel(
         radioButtons("overlays", "Select overlay", choiceNames = c("IMD", "Age", "Afro-Caribbean", "Mean Deviation"), choiceValues = c("IMD", "Age", "Afro", "MD")),
-        selectInput("centre_select", label = "Select Area", choices = c("Huddersfield", "Gloucester", "Portsmouth"), selected = "Huddersfield"),
-        textOutput("test")
+        selectInput("centre_select", label = "Select Area", choices = c("Huddersfield", "Gloucester", "Portsmouth"), selected = "Huddersfield")
+        #textOutput(cat("test"))
     ), 
     mainPanel(
-      leafletOutput(outputId = "mymap", height = 500, width = 1000),
-      dataTableOutput("area_table")
+      leafletOutput(outputId = "mymap", height = 500, width = 1000)
       )
-    )
+    ),
+  fluidRow(
+    plotOutput("area_info")
+  )
   )
 
 #Shiny server code
 server <- function(input, output, session) {
   
-  output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == "E02002244",][,c(3,8:12)]})
+  #output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == "E02002244",][,c(3,8:12)]})
   
   observeEvent(input$mymap_shape_click, {
     clicked_msoa <- as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat))
-    output$test <- renderText(as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat)))
-    output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == clicked_msoa, c(3,8:12)][,]
+    #output$test <- renderText(as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat)))
+    output$area_info <- renderPlot( {plot(geo_dat@data[geo_dat$msoa01cd == clicked_msoa, c(3,8:12)])
       }
       
       )

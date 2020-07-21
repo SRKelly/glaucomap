@@ -5,14 +5,14 @@ library(leaflet)
 library(maps)
 library(dplyr)
 library(rmapshaper)
-#Setting working directory
-setwd("C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses")
+library(ggplot2)
+library(tidyverse)
 
 #Load in functions
-source("R Code\\functions.R")
+source("./functions.R")
 
 #Loading in kml MSOA file of England and Wales
-geo_dat <- readOGR("C:\\Users\\Steph\\Documents\\PhD Related Files\\glaucoma_ses\\Data", layer = "Middle_Layer_Super_Output_Areas__December_2001__Boundaries")
+geo_dat <- readOGR("./../data/Middle_Layer_Super_Output_Areas__December_2001__Boundaries.shp", layer = "Middle_Layer_Super_Output_Areas__December_2001__Boundaries")
 
 #Subset MSOAs we want to plot
 huddersfield <- c("Kirklees", "Calderdale")
@@ -24,13 +24,13 @@ geo_dat <- geo_dat[geo_dat$la_name %in% c(huddersfield, portsmouth, cheltenham),
 geo_dat <- ms_simplify(geo_dat, sys = TRUE)
 
 #Load in patient data
-vf_dat <- read.csv("C:\\Users\\Steph\\Documents\\PhD Related Files\\VFs\\Older Medisoft data\\All_24_2s.csv")[,1:42]
+vf_dat <- read_csv("./../../VFs/Older Medisoft data/All_24_2s.csv")[,1:42]
 
 vf_dat <- vf_dat %>% group_by(patient_pseudoid, EyeTested) %>% mutate(age = as.numeric(as.Date(DateOfTest) - as.Date(BirthDate))/365.25, NumOfVfs = length(MeanDeviation))
 
 #Load in postcode data
-postcode1 <- read.csv("Data\\postcode1.csv")[,c(2,4,6)]
-postcode2 <- read.csv("Data\\postcode2.csv")[,c(2,4,6)]
+postcode1 <- read.csv("./../data/postcode1.csv")[,c(2,4,6)]
+postcode2 <- read.csv("./../data/postcode1.csv")[,c(2,4,6)]
 postcodes <- rbind(postcode1, postcode2)
 rm(list = c("postcode1", "postcode2"))
 
@@ -40,7 +40,7 @@ postcodes$PCD8 <- gsub(" ", "", postcodes$PCD8)
 vf_dat2 <- merge(vf_dat, postcodes, by.x = "Postcode", by.y = "PCD8", all.x = TRUE) #Merge error? 
 
 #Loading in IMD data and merging
-IMD_dat <- read.csv("Data\\IMD.csv")
+IMD_dat <- read.csv("./../data/IMD.csv")
 IMD_dat <- IMD_dat[,c("LSOA.code..2011.", "Index.of.Multiple.Deprivation..IMD..Score")]
 vf_dat3 <- merge(vf_dat2, IMD_dat, by.x = "LSOA11CD", by.y = "LSOA.code..2011.", all.x = TRUE)
 
@@ -57,7 +57,7 @@ geo_dat@data <- merge(geo_dat@data, propblack, by.x = "msoa01cd", by.y = "MSOA_C
 
 MD_res <- vf_dat3 %>% arrange(patient_pseudoid, DateOfTest) %>% group_by(MSOA11CD, patient_pseudoid) %>% summarise(presenting_MD = MeanDeviation[1], second_MD = MeanDeviation[2])
 MD_res <- MD_res %>% group_by(MSOA11CD) %>% summarise(presenting_MD = mean(presenting_MD), proportion = length(second_MD[second_MD < -12])/length(second_MD), num_vfs = length(second_MD))
-MD_res$proportion[MD_res$num_vfs < 10] <- NA
+#MD_res$proportion[MD_res$num_vfs < 10] <- NA
 geo_dat@data <- merge(geo_dat@data, MD_res, by.x = "msoa01cd", by.y = "MSOA11CD", all.x = TRUE)
 
 age_res <- vf_dat3 %>% group_by(MSOA11CD) %>% summarise(age_prop = length(age[age > 60])/length(age))
@@ -95,3 +95,14 @@ leaflet(data = geo_dat) %>%
   hideGroup(c("Mean Deviation", "Proportion Afro-Caribbean", "Proportion over 60"))
 
 
+# Testing comparison plots
+# Idea: a little plot in the bottom right that compares the selected tile to the average
+# Problem: How to display 4 different datapoints with different metrics on the same graph.
+
+ref_df <- geo_dat@data %>% 
+  summarise(
+    men_IMD = mean(men_IMD), 
+    prprtn_ = mean(prprtn_),
+    prsn_MD = mean(prsn_MD),
+    proprtn = mean(proprtn)
+    )
