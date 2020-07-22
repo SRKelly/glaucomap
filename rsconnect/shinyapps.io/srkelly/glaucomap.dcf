@@ -5,8 +5,8 @@ account: srkelly
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2565424
-bundleId: 3390015
+bundleId: 3420891
 url: https://srkelly.shinyapps.io/glaucomap/
-when: 1594720725.2683
+when: 1595415783.1941
 asMultiple: FALSE
 asStatic: FALSE
