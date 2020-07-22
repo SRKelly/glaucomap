@@ -11,27 +11,27 @@ library(purrr)
 library(htmlwidgets)
 library(htmltools)
 
-#Loading in data
+# Loading in data
 geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
 
-#Load in functions and css style sheet
+# Load in functions and css style sheet
 source("./functions.R")
 
-geo_dat@data$hover_text_imd <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "IMD Score: ", round(geo_dat$men_IMD, 2))
-geo_dat@data$hover_text_age <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Proportion of population over 60: ", round(geo_dat$age_prp, 2))
-geo_dat@data$hover_text_black <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Proportion of population Afro-Caribbean: ", round(geo_dat$prprtn_, 2))
-geo_dat@data$hover_text_md <- create_hover_text(geo_dat$mso01nm, geo_dat$num_vfs, "Mean presenting MD: ", round(geo_dat$prsn_MD, 2))
+geo_dat@data$hover_text_imd <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs, "IMD Score: ", round(geo_dat$men_IMD, 2))
+geo_dat@data$hover_text_age <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs, "Proportion of population over 60: ", geo_dat$age_prp)
+geo_dat@data$hover_text_black <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs, "Proportion of population Afro-Caribbean: ", as.numeric(geo_dat$prprtn_))
+geo_dat@data$hover_text_md <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs, "Mean presenting MD: ", round(geo_dat$prsn_MD, 2))
 
-#Rename columns
-colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa01nm", "msoa01nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hover_text_imd", "hover_text_age", "hover_text_black", "hover_text_md")
+# Rename columns
+colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa11nm", "msoa11nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hover_text_imd", "hover_text_age", "hover_text_black", "hover_text_md")
 
-
-
+# Make colour palattes
 IMD_pal <- colorNumeric(palette = "YlOrRd", domain = geo_dat$mean_IMD)
 MD_pal <- colorNumeric(palette = "Blues", domain = geo_dat$proportion)
 Black_pal <- colorNumeric(palette = "Reds", domain = geo_dat$proportion_black)
 age_pal <- colorNumeric(palette = "BuGn", domain = geo_dat$age_prop)
 
+# Fixing bad NA placement on legend
 css_fix <- "div.info.legend.leaflet-control br {clear: both;}"
 html_fix <- as.character(htmltools::tags$style(type = "text/css", css_fix))
 
@@ -62,7 +62,7 @@ server <- function(input, output, session) {
   observeEvent(input$mymap_shape_click, {
     clicked_msoa <- as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat))
     #output$test <- renderText(as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat)))
-    output$area_info <- renderPlot( {plot(geo_dat@data[geo_dat$msoa01cd == clicked_msoa, c(3,8:12)])
+    output$area_info <- renderPlot( {plot(geo_dat@data[geo_dat$msoa11cd == clicked_msoa, c(3,8:12)])
       }
       
       )
