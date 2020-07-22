@@ -26,10 +26,12 @@ geo_dat@data$hover_text_md <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs
 colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa11nm", "msoa11nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hover_text_imd", "hover_text_age", "hover_text_black", "hover_text_md")
 
 # Make colour palattes
+
 IMD_pal <- colorNumeric(palette = "YlOrRd", domain = geo_dat$mean_IMD)
 MD_pal <- colorNumeric(palette = "Blues", domain = geo_dat$proportion)
 Black_pal <- colorNumeric(palette = "Reds", domain = geo_dat$proportion_black)
 age_pal <- colorNumeric(palette = "BuGn", domain = geo_dat$age_prop)
+
 
 # Fixing bad NA placement on legend
 css_fix <- "div.info.legend.leaflet-control br {clear: both;}"
@@ -74,8 +76,8 @@ server <- function(input, output, session) {
   
   observeEvent(input$centre_select, switch(input$centre_select,
                                            Huddersfield = {leafletProxy("mymap") %>% setView(-1.88, 53.66, zoom = 10) },
-                                           Gloucester = {leafletProxy("mymap") %>% setView(-2.2769, 52, zoom = 9) },
-                                           Portsmouth = {leafletProxy("mymap") %>% setView(-0.8652, 51, zoom = 10) }))
+                                           Gloucester = {leafletProxy("mymap") %>% setView(-2.2769, 51.9, zoom = 9) },
+                                           Portsmouth = {leafletProxy("mymap") %>% setView(-0.99, 50.9, zoom = 10) }))
 
   observeEvent(input$overlays, switch(input$overlays, 
                                       IMD = {leafletProxy("mymap", data = geo_dat) %>% clearShapes() %>% clearControls() %>%
