@@ -10,6 +10,7 @@ library(rgdal)
 library(purrr)
 library(htmlwidgets)
 library(htmltools)
+library(ggplot2)
 
 # Loading in data
 geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
@@ -24,6 +25,17 @@ geo_dat@data$hover_text_md <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs
 
 # Rename columns
 colnames(geo_dat@data) <- c("msoa01cd", "objectid", "msoa11nm", "msoa11nmw", "st_arsh", "st_lngt", "la_name", "mean_IMD", "proportion_black", "presenting_MD", "proportion", "num_vfs", "age_prop", "hover_text_imd", "hover_text_age", "hover_text_black", "hover_text_md")
+
+# Reference data frame for subplot
+
+ref_df <- geo_dat@data %>% 
+  summarise(
+    mean_IMD = mean(mean_IMD), 
+    proportion_black = mean(proportion_black),
+    proportion = mean(proportion),
+    age_prop = mean(age_prop),
+    which_group = "reference"
+  )
 
 # Make colour palattes
 
@@ -52,23 +64,36 @@ ui <- fluidPage(
       )
     ),
   fluidRow(
-    plotOutput("area_info")
+    # plotOutput("area_info")
   )
   )
 
 #Shiny server code
 server <- function(input, output, session) {
   
-  #output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == "E02002244",][,c(3,8:12)]})
-  
-  observeEvent(input$mymap_shape_click, {
-    clicked_msoa <- as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat))
-    #output$test <- renderText(as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat)))
-    output$area_info <- renderPlot( {plot(geo_dat@data[geo_dat$msoa11cd == clicked_msoa, c(3,8:12)])
-      }
-      
-      )
-    })
+  #  output$area_table <- renderDataTable({geo_dat@data[geo_dat$msoa01cd == "E02002244",][,c(3,8:12)]})
+  # 
+  # This would be code to add plots of clicked region
+  # 
+  #
+  # observeEvent(input$mymap_shape_click, {
+  #   clicked_msoa <- as.character(point_in_df(input$mymap_shape_click$lng, input$mymap_shape_click$lat, geo_dat))
+  #   
+  #   output$area_info <- renderPlot({
+  #     
+  #     clicked_data <- add_column(geo_dat@data[geo_dat$msoa11cd == clicked_msoa, c(3,8:13)], which_group = "clicked")
+  #     combined_data <- bind_rows(ref_df, clicked_data)
+  #     print(combined_data)
+  #     
+  #     ggplot(combined_data) + 
+  #       geom_bar(aes(x = mean_IMD, y = mean_IMD, fill = which_group), stat = "identity") +
+  #       coord_flip() +
+  #       theme_bw()
+  #     
+  #     }
+  #     
+  #     )
+  #   })
   
   output$mymap <- renderLeaflet({leaflet(data = geo_dat) %>% 
       addTiles(group = "OSM (default)") %>% 

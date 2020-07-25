@@ -158,6 +158,7 @@ writeOGR(obj = geo_dat, dsn = "./shapefiles/data.shp",
 # Testing comparison plots
 # Idea: a little plot in the bottom right that compares the selected tile to the average
 # Problem: How to display 4 different datapoints with different metrics on the same graph.
+# Solution: Rank regions?
 
 ref_df <- geo_dat@data %>% 
   summarise(

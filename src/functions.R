@@ -21,7 +21,7 @@ point_in_df <- function(x, y, df){
     poly_cords <- df@polygons[[i]]@Polygons[[1]]@coords
     res[i] <- point.in.polygon(x, y, poly_cords[,1], poly_cords[,2])
   }
-  return(df$msoa01cd[which(res == 1)])
+  return(df$msoa11cd[which(res == 1)])
 }
 
 
