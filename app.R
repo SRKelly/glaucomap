@@ -13,10 +13,10 @@ library(htmltools)
 library(ggplot2)
 
 # Loading in data
-geo_dat <- readOGR(dsn = "shapefiles/data.shp", layer = "data")
+geo_dat <- readOGR(dsn = "./shapefiles/data.shp", layer = "data")
 
 # Load in functions and css style sheet
-source("./functions.R")
+source("./0_functions.R")
 
 geo_dat@data$hover_text_imd <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs, "IMD Score: ", round(geo_dat$men_IMD, 2))
 geo_dat@data$hover_text_age <- create_hover_text(geo_dat$mso11nm, geo_dat$num_vfs, "Proportion of population over 60: ", geo_dat$age_prp)
