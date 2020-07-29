@@ -10,8 +10,7 @@ library(tidyverse)
 library(sp)
 # Load in functions
 
-source("./functions.R")
-
+source("./src/0_functions.R")
 
 # Loading in kml MSOA file of England and Wales
 
